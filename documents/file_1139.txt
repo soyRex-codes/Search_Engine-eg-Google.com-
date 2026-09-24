@@ -1,0 +1,4 @@
+   The principal design features are described of an information system using
+the natural language and a descriptor language:  thesaurus organization,
+relevance criterion, indexing procedure, experimental estimates of the 
+information language, and parametric information processing techniques..
