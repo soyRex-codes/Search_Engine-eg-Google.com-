@@ -2,6 +2,9 @@
 
 A Python information-retrieval project that builds an inverted index from a collection of text documents. The project includes both a standard implementation and a multiprocessing implementation.
 
+# Upcoming Improvement
+- Working on extending a Python inverted index into a Boolean search tool that reads queries from a file and returns matching documents for AND/OR combinations of up to four terms.
+
 ## What it does
 
 The program:
