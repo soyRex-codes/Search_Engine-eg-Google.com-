@@ -1,0 +1,13 @@
+# Rajkumar Kushwaha, CSC734 Information Retrieval, Homework 02
+
+to run the program, run these file in the terminal: main.py is for the first part of the hw, its the modified hw01 code, to support hw02.
+and for second part of the Hw: run: search_program_for_user_query.py
+
+when these file will run: it will ask for inputs of the file paths, enter those files paths as asked:
+paths of files such as:
+inverted index file path
+stop words file path
+query file path
+
+
+the output will be saved in output.txt for your final review.

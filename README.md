@@ -1,70 +1,41 @@
-# Search Engine
+# CSC734 Information Retrieval - Homework 02
 
-A Python information-retrieval project that builds an inverted index from a collection of text documents. The project includes both a standard implementation and a multiprocessing implementation.
-
-# Upcoming Improvement
-- Working on extending a Python inverted index into a Boolean search tool that reads queries from a file and returns matching documents for AND/OR combinations of up to four terms.
+Rajkumar Kushwaha's Python information-retrieval project. `main.py` builds an inverted index from text documents, and `search_program_for_user_query.py` answers Boolean queries using that index. The repository also contains a separate multiprocessing experiment.
 
 ## What it does
 
 The program:
 
 1. Reads `.txt` documents from a folder.
-2. Normalizes punctuation and tokenizes the text with NLTK.
+2. Tokenizes the text with NLTK.
 3. Converts tokens to lowercase.
-4. Removes words listed in `stopwords.txt`.
-5. Applies Porter stemming.
-6. Builds and saves an inverted index as JSON.
-7. Displays the index size, the 10 most frequent terms, and execution time.
+4. Removes ASCII punctuation from each token.
+5. Removes words listed in `stopwords.txt`.
+6. Applies Porter stemming.
+7. Builds and saves an inverted index as JSON.
+8. Displays the index size, the 10 most frequent terms, and execution time.
 
 The parallel implementation performs preprocessing in batches using multiple processes.
 
 ## Requirements
 
-- Python 3.13 or a compatible Python 3 version
-- Conda or Miniconda (recommended)
+- A compatible Python 3 version
+- NLTK
 - A terminal or command prompt
-
-The repository includes `CSC734_IR.yml`, a Conda environment file containing the project's dependencies, including NLTK.
 
 ## Installation
 
-Clone the repository and enter its directory:
+From the project folder, install the package listed in `requirements.txt`:
 
 ```bash
-git clone https://github.com/soyRex-codes/Search_Engine.git
-cd Search_Engine
-```
-
-### Option 1: Create the Conda environment
-
-Use the included environment file:
-
-```bash
-conda env create -f CSC734_IR.yml
-conda activate CSC790_IR
-```
-
-If the environment already exists, update it instead:
-
-```bash
-conda env update -f CSC734_IR.yml --prune
-conda activate CSC790_IR
-```
-
-### Option 2: Use an existing Python environment
-
-Install the required Python package manually:
-
-```bash
-python -m pip install nltk
+python -m pip install -r requirements.txt
 ```
 
 The other imports used by the main programs are part of Python's standard library.
 
 ## NLTK data
 
-`main.py` uses NLTK's tokenizer. Install the tokenizer data once after activating the environment:
+`main.py` uses NLTK's tokenizer. Install the tokenizer data once in the same Python environment:
 
 ```bash
 python -m nltk.downloader punkt punkt_tab
@@ -123,12 +94,27 @@ inverted_index_parallel.json
 
 The parallel implementation is protected by a `__main__` check and should be run as a script, not by executing individual functions from an interactive interpreter.
 
+## Run the HW02 Boolean search
+
+To save the HW02 result layout, including every matching document ID, run:
+
+```bash
+python search_program_for_user_query.py
+```
+
+For a short debugging preview in the same output file, run:
+
+```bash
+python search_program_for_user_query.py --preview
+```
+
+At the prompts, enter `inverted_index.json`, `stopwords.txt`, and `sample_queries.txt` (or your own query file), in that order. Each non-empty line of the query file is one query of at most four words. The program preprocesses each query with the same function used for the documents, generates all AND/OR combinations, and evaluates AND before OR. Each run replaces `output.txt` beside the search script. The default run writes one matching ID per line; `--preview` writes a result count and the first 10 IDs for each expression. `output.txt` is separate from `inverted_index.json`, which stores the index.
+
 ## Input data
 
-The repository includes document collections such as:
+The repository includes this document collection:
 
 - `documents/`
-- `documents_big/`
 
 Each input folder should contain plain-text files ending in `.txt`. Only files directly inside the selected folder are read; nested directories are not searched.
 
@@ -139,20 +125,22 @@ The supplied `stopwords.txt` file should contain one stop word per line.
 | File or directory | Purpose |
 | --- | --- |
 | `main.py` | Standard document preprocessing and inverted-index builder |
+| `search_program_for_user_query.py` | HW02 Boolean query program |
+| `sample_queries.txt` | Example user queries |
 | `main_parallel.py` | Multiprocessing version of the index builder |
 | `CSC734_IR.yml` | Conda environment definition |
 | `stopwords.txt` | Stop-word list used during preprocessing |
 | `documents/` | Text-document collection |
-| `documents_big/` | Larger text-document collection |
 | `inverted_index.json` | Output generated by `main.py` |
+| `output.txt` | Search results generated by `search_program_for_user_query.py` |
 | `inverted_index_parallel.json` | Output generated by `main_parallel.py` |
 
 ## Preprocessing details
 
 Before indexing, each document is processed as follows:
 
-- ASCII and Unicode punctuation is replaced with spaces.
-- NLTK tokenizes the resulting text.
+- NLTK tokenizes the text.
+- ASCII punctuation is removed from each token.
 - Tokens are lowercased.
 - Stop words are removed.
 - Remaining tokens are stemmed with the Porter stemmer.
