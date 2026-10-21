@@ -1,0 +1,68 @@
+Rajkumar Kushwaha | CSC734 Information Retrieval | Homework 03
+
+FULL-COLLECTION BENCHMARK
+Date: October 19, 2026
+Python: 3.14.4
+NLTK: 3.10.3
+System: macOS-27.0.1-arm64-arm-64bit-Mach-O
+Architecture: arm64
+
+Input: the included 1,459 documents and unchanged HW02 stopwords.txt.
+K: 10 pairs per method.
+Methods: TF, TF-IDF, and sublinear TF-IDF, all with cosine similarity.
+Distinct pairs evaluated: 1,063,611 per method.
+Total method-specific pair scores: 3,190,833.
+Vocabulary after preprocessing: 6,748 terms.
+
+Command (from the extracted assignment folder):
+  python main.py --documents documents --stopwords stopwords.txt --k 10
+
+Trial   Program total (s)   External wall time (s)
+    1               2.471                    2.504
+    2               2.452                    2.485
+    3               2.476                    2.509
+
+Median external wall time: 2.504 seconds.
+All three runs were below the annotated 60-second bonus target on this machine.
+
+METHODOLOGY
+- Each trial launched a new Python process.
+- Every process reread and preprocessed the original document collection.
+- No precomputed index, persistent stem cache, or saved similarity results.
+- One-time dependency installation and NLTK data setup were completed first.
+- External wall time includes interpreter startup, imports, reading,
+  preprocessing, weighting, pair scoring, ranking, output to a captured pipe,
+  and process exit. User input was supplied with command-line flags.
+- The program also reports its own elapsed time, starting before NLTK imports.
+- These are fresh-process runs, not guaranteed cold operating-system disk-cache
+  runs. The original exploratory run was approximately 2.72 program seconds.
+- Terminal display speed, larger K, Python versions, and different hardware
+  can change timings. Measurements do not guarantee a grading outcome.
+
+CORRECTNESS CHECKS
+- All 13 unittest tests passed.
+- Independent dense, unnormalized reference scorer checked 900 document pairs
+  across randomized collections, with all three methods compared to 12 decimal
+  places. This reference does not call the production weighting or cosine code.
+- A hand-calculated corpus separately checks the three scoring formulas.
+- Bounded-heap results match exhaustive sorting for K=1, 7, 65, and 66 on a
+  12-document fixture (66 possible pairs).
+- Empty vectors, all-zero IDF vectors, exact ties, disjoint documents, repeated
+  terms, natural filename ordering, invalid K, and CLI behavior are tested.
+- Per-document frequency dictionaries match the supplied HW02 preprocessing
+  exactly for all 1,459 documents, using the same installed NLTK version.
+
+PERFECT-SIMILARITY PAIRS IN THE REAL COLLECTION
+- file_234.txt and file_1440.txt: identical bytes and processed term counts.
+- file_1084.txt and file_1447.txt: different bytes, identical processed counts.
+- file_1162.txt and file_1164.txt: different bytes, identical processed counts.
+Distinct files with identical processed vectors legitimately have cosine 1.
+
+OPTIMIZATIONS USED
+- In-run Porter-stem cache and one shared stemmer.
+- Sparse dictionaries and precomputed normalized weights.
+- One i<j comparison pass, calculating all three scores per shared-term scan.
+- Scan the smaller dictionary for each pair.
+- Three bounded size-K heaps; no full sort of all document pairs.
+- No vectorizer, built-in cosine function, numeric array library, or parallel
+  processing is needed to meet the observed time target.

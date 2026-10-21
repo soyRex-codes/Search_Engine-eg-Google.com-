@@ -1,0 +1,61 @@
+================== CSC734-IR Homework 03 ==================
+First Name: Rajkumar
+Last Name: Kushwaha
+=========================================================
+The number of documents is: 1459
+The number of unique words is: 6748
+The top 10 most frequent words are:
+1. librari (1547 occurrences)
+2. inform (1361 occurrences)
+3. system (1077 occurrences)
+4. use (1077 occurrences)
+5. index (600 occurrences)
+6. research (541 occurrences)
+7. data (536 occurrences)
+8. studi (515 occurrences)
+9. book (508 occurrences)
+10. develop (502 occurrences)
+=========================================================
+The top 10 closest document pairs are:
+
+1. Using tf:
+1. file_234.txt, file_1440.txt with similarity of 1.00000000
+2. file_1084.txt, file_1447.txt with similarity of 1.00000000
+3. file_1162.txt, file_1164.txt with similarity of 1.00000000
+4. file_5.txt, file_945.txt with similarity of 0.99657013
+5. file_458.txt, file_538.txt with similarity of 0.99365073
+6. file_4.txt, file_1401.txt with similarity of 0.98581488
+7. file_175.txt, file_179.txt with similarity of 0.92697107
+8. file_1190.txt, file_1191.txt with similarity of 0.87380975
+9. file_861.txt, file_863.txt with similarity of 0.85985064
+10. file_341.txt, file_360.txt with similarity of 0.82649779
+
+2. Using tf_idf:
+1. file_1084.txt, file_1447.txt with similarity of 1.00000000
+2. file_1162.txt, file_1164.txt with similarity of 1.00000000
+3. file_234.txt, file_1440.txt with similarity of 1.00000000
+4. file_5.txt, file_945.txt with similarity of 0.99789664
+5. file_458.txt, file_538.txt with similarity of 0.98418549
+6. file_4.txt, file_1401.txt with similarity of 0.96055022
+7. file_175.txt, file_179.txt with similarity of 0.95159549
+8. file_861.txt, file_863.txt with similarity of 0.79908944
+9. file_1190.txt, file_1191.txt with similarity of 0.75333629
+10. file_341.txt, file_360.txt with similarity of 0.70694407
+
+3. Using wf_idf:
+1. file_234.txt, file_1440.txt with similarity of 1.00000000
+2. file_1084.txt, file_1447.txt with similarity of 1.00000000
+3. file_1162.txt, file_1164.txt with similarity of 1.00000000
+4. file_5.txt, file_945.txt with similarity of 0.99962348
+5. file_458.txt, file_538.txt with similarity of 0.98568468
+6. file_4.txt, file_1401.txt with similarity of 0.96000069
+7. file_175.txt, file_179.txt with similarity of 0.95358160
+8. file_861.txt, file_863.txt with similarity of 0.75855007
+9. file_1190.txt, file_1191.txt with similarity of 0.73869397
+10. file_1386.txt, file_1387.txt with similarity of 0.61191884
+
+Distinct pairs evaluated per method: 1,063,611
+Reading, preprocessing, and statistics: 0.420 seconds
+Weighting and normalization: 0.042 seconds
+Pair comparison and ranking: 1.924 seconds
+Total execution time (excluding user input): 2.476 seconds

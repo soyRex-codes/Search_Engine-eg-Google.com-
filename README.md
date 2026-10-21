@@ -1,180 +1,140 @@
-# CSC734 Information Retrieval - Homework 02
+# CSC734 Information Retrieval — HW03
 
-Rajkumar Kushwaha's Python information-retrieval project. `main.py` builds an inverted index from text documents, and `search_program_for_user_query.py` answers Boolean queries using that index. The repository also contains a separate multiprocessing experiment.
+Rajkumar Kushwaha's Python information-retrieval project. The latest version
+compares documents using the vector-space model and returns the **K closest
+document pairs** for three weighting methods: TF, TF-IDF, and sublinear TF-IDF.
 
-## What it does
+The HW01/HW02 inverted-index builder, Boolean query search, and parallel indexing
+experiment remain available through the commands below.
 
-The program:
+## Setup
 
-1. Reads `.txt` documents from a folder.
-2. Tokenizes the text with NLTK.
-3. Converts tokens to lowercase.
-4. Removes ASCII punctuation from each token.
-5. Removes words listed in `stopwords.txt`.
-6. Applies Porter stemming.
-7. Builds and saves an inverted index as JSON.
-8. Displays the index size, the 10 most frequent terms, and execution time.
-
-The parallel implementation performs preprocessing in batches using multiple processes.
-
-## Requirements
-
-- A compatible Python 3 version
-- NLTK
-- A terminal or command prompt
-
-## Installation
-
-From the project folder, install the package listed in `requirements.txt`:
+Requires **Python 3.10 or later**. NLTK is the only third-party runtime dependency.
 
 ```bash
+python -m venv .venv
+source .venv/bin/activate
 python -m pip install -r requirements.txt
-```
-
-The other imports used by the main programs are part of Python's standard library.
-
-## NLTK data
-
-`main.py` uses NLTK's tokenizer. Install the tokenizer data once in the same Python environment:
-
-```bash
 python -m nltk.downloader punkt punkt_tab
 ```
 
-If your NLTK installation does not require both packages, downloading both is harmless and avoids tokenizer lookup errors.
+On Windows PowerShell, activate with `.venv\Scripts\Activate.ps1` instead.
+Use `python3` if that is your interpreter's command name.
 
-## Run the standard version
+## Run HW03
 
-From the repository root, run:
+From the repository root:
 
 ```bash
 python main.py
 ```
 
-When prompted, enter the document folder and stop-word file path:
-
-```text
-Enter the folder path: documents
-Enter the stop words file path: stopwords.txt
-```
-
-On Windows, you can use either forward slashes or an escaped path, for example:
-
-```text
-C:/path/to/Search_Engine/documents
-C:/path/to/Search_Engine/stopwords.txt
-```
-
-The program writes the generated index to:
-
-```text
-inverted_index.json
-```
-
-## Run the parallel version
-
-To process documents using multiple processes, run:
+Press Enter to use the included `documents/` and `stopwords.txt`, then enter K.
+Alternatively, supply all inputs as command-line arguments:
 
 ```bash
-python main_parallel.py
+python main.py --documents documents --stopwords stopwords.txt --k 20
 ```
 
-When prompted, provide the same paths:
+The included collection contains **1,459 documents**, giving **1,063,611 distinct
+pairs**. K must be between 1 and that pair count. K selects pairs across the
+collection; it does not request K neighbors for every document.
 
-```text
-Enter the folder path: documents
-Enter the stop words file path: stopwords.txt
-```
-
-The parallel program uses up to four worker processes and writes its output to:
-
-```text
-inverted_index_parallel.json
-```
-
-The parallel implementation is protected by a `__main__` check and should be run as a script, not by executing individual functions from an interactive interpreter.
-
-## Run the HW02 Boolean search
-
-To save the HW02 result layout, including every matching document ID, run:
+Output includes student/course identification, processed vocabulary size, the
+10 most frequent processed terms, three ranked pair lists, and execution time.
+Results are printed to the terminal. To save a run:
 
 ```bash
-python search_program_for_user_query.py
+python main.py --documents documents --stopwords stopwords.txt --k 20 > output.txt
 ```
 
-For a short debugging preview in the same output file, run:
+## Calculation
 
-```bash
-python search_program_for_user_query.py --preview
-```
+Preprocessing retains the HW02 sequence: NLTK tokenization, lowercase, ASCII
+punctuation removal, supplied stop-word removal, and Porter stemming.
 
-At the prompts, enter `inverted_index.json`, `stopwords.txt`, and `sample_queries.txt` (or your own query file), in that order. Each non-empty line of the query file is one query of at most four words. The program preprocesses each query with the same function used for the documents, generates all AND/OR combinations, and evaluates AND before OR. Each run replaces `output.txt` beside the search script. The default run writes one matching ID per line; `--preview` writes a result count and the first 10 IDs for each expression. `output.txt` is separate from `inverted_index.json`, which stores the index.
+For term `t` in document `d`:
 
-## Input data
-
-The repository includes this document collection:
-
-- `documents/`
-
-Each input folder should contain plain-text files ending in `.txt`. Only files directly inside the selected folder are read; nested directories are not searched.
-
-The supplied `stopwords.txt` file should contain one stop word per line.
-
-## Project files
-
-| File or directory | Purpose |
+| Method | Weight |
 | --- | --- |
-| `main.py` | Standard document preprocessing and inverted-index builder |
-| `search_program_for_user_query.py` | HW02 Boolean query program |
-| `sample_queries.txt` | Example user queries |
-| `main_parallel.py` | Multiprocessing version of the index builder |
-| `CSC734_IR.yml` | Conda environment definition |
-| `stopwords.txt` | Stop-word list used during preprocessing |
-| `documents/` | Text-document collection |
-| `inverted_index.json` | Output generated by `main.py` |
-| `output.txt` | Search results generated by `search_program_for_user_query.py` |
-| `inverted_index_parallel.json` | Output generated by `main_parallel.py` |
+| TF | `tf(t,d)` |
+| TF-IDF | `tf(t,d) * log10(N / df(t))` |
+| Sublinear TF-IDF | `(1 + log10(tf(t,d))) * log10(N / df(t))` when TF is positive; otherwise zero |
 
-## Preprocessing details
+`tf` is an occurrence count. `df` counts documents containing the term, once per
+document. IDF is unsmoothed. Each method uses its own Euclidean vector lengths;
+cosine similarity is the dot product of the resulting unit vectors.
 
-Before indexing, each document is processed as follows:
+Each distinct pair is evaluated once (`i < j`). Self-pairs and reversed
+duplicates are excluded. Different files with identical processed vectors are
+valid results with similarity 1. A zero vector's similarity is reported as 0,
+an explicit convention for a mathematically undefined case. Exactly equal
+computed scores use natural document order to break ties. Tiny floating-point
+differences can change the order of mathematically tied pairs.
 
-- NLTK tokenizes the text.
-- ASCII punctuation is removed from each token.
-- Tokens are lowercased.
-- Stop words are removed.
-- Remaining tokens are stemmed with the Porter stemmer.
+Weights, normalization, cosine calculations, and ranking are implemented directly.
+No ready-made vectorizer or built-in cosine function is used. Sparse dictionaries,
+an in-run stem cache, a shared scoring pass, and bounded heaps reduce repeated
+work. Every run rereads and processes the corpus; no saved similarity results are
+used.
 
-The inverted index maps each processed term to the document filenames in which it appears.
+## Verification and performance
 
-## Troubleshooting
-
-### `LookupError` for NLTK tokenizer data
-
-Run:
+Run the HW03 tests and earlier-homework compatibility tests:
 
 ```bash
-python -m nltk.downloader punkt punkt_tab
+python -m unittest discover -v
 ```
 
-Make sure the command is run with the same Python interpreter or Conda environment used to start the project.
+HW03 tests cover hand-calculated examples, an independent dense reference scorer,
+top-K selection against exhaustive sorting, zero vectors, ties, input validation,
+and relocation of the program. Compatibility tests check the legacy index builder,
+Boolean retrieval, and a two-worker parallel indexing run.
 
-### No documents are processed
+During development, an independent full sort selected the same top 10,000 pairs
+for each method. Score differences were at floating-point precision; reordered
+results were mathematical ties. A measured full K=20 run took about 2.5–2.8 seconds
+on the development machine, and a K=10,000 run took about 3.1 seconds externally
+measured. These are hardware-dependent measurements, not runtime guarantees.
 
-Verify that:
+See [BENCHMARK.txt](BENCHMARK.txt) for the original benchmark methodology,
+[sample_output.txt](sample_output.txt) for a K=10 run, and
+[How_to_run.txt](How_to_run.txt) for detailed execution instructions.
 
-- The folder path is correct.
-- The folder contains `.txt` files directly inside it.
-- You entered the path without a filename at the end.
+## Earlier homework commands
 
-### `FileNotFoundError`
+`main.py` now runs HW03. The previous indexing program is preserved as
+`hw02_index.py`; its preprocessing interface is used by the legacy tools.
 
-Check that both paths exist and that `stopwords.txt` is in the current repository directory, or provide its full path.
+| Task | Command |
+| --- | --- |
+| Build/save the original inverted index | `python hw02_index.py` |
+| Run HW02 Boolean queries | `python search_program_for_user_query.py` |
+| Preview Boolean query matches | `python search_program_for_user_query.py --preview` |
+| Build an index using parallel preprocessing | `python main_parallel.py` |
 
-### Rebuilding an index
+For Boolean search, provide `inverted_index.json`, `stopwords.txt`, and
+`sample_queries.txt` at the prompts. Results are written to `output.txt`.
+The [HW02 instructions](docs/HW02_README.md) retain the earlier workflow details.
 
-Running either script again overwrites its corresponding output JSON file in the repository root.
+## Repository files
 
-## License
+| Path | Purpose |
+| --- | --- |
+| `main.py` | HW03 document similarity program |
+| `test_hw03.py` | HW03 correctness and input tests |
+| `test_hw02_compatibility.py` | Regression tests for earlier homework commands |
+| `hw02_index.py` | Preserved sequential HW01/HW02 index builder |
+| `search_program_for_user_query.py` | HW02 Boolean query retrieval |
+| `main_parallel.py` | Earlier parallel index builder |
+| `requirements.txt` | Tested NLTK version |
+| `documents/`, `stopwords.txt` | Input corpus and stop-word list |
+| `How_to_run.txt` | Detailed HW03 setup and usage |
+| `BENCHMARK.txt`, `sample_output.txt` | Development measurements and example output |
+
+The existing `documents_big/` synthetic collection, saved indexes, and Conda
+environment file are retained from earlier homework. HW03 defaults to `documents/`.
+Local virtual environments, caches, editor files, output, and ZIP archives are
+excluded from new Git additions by `.gitignore`.
 
 No license is currently specified for this repository.
