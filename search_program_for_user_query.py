@@ -2,7 +2,7 @@ import json
 import sys
 from contextlib import redirect_stdout
 from pathlib import Path
-from main import preprocess_text, load_stop_words, document_sort_key, my_info_and_course # reusable functions from main
+from hw02_index import preprocess_text, load_stop_words, document_sort_key, my_info_and_course # reusable functions from hw02_index
 from itertools import product # product() gives us every possible combination of choices.
 
 # Rajkumar Kushwaha, CSC734 Information Retrieval, Homework 02

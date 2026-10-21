@@ -1,1 +1,2 @@
-nltk
+# Rajkumar Kushwaha | CSC734 | Homework 03
+nltk==3.10.3

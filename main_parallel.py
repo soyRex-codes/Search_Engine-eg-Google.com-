@@ -6,8 +6,8 @@ from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import get_context
 from time import perf_counter
 
-# I reuse the functions from main.py so both versions process text the same way.
-from main import (
+# I reuse the functions from hw02_index.py so both versions process text the same way.
+from hw02_index import (
     build_inverted_index,
     display_index_size,
     load_index,
@@ -30,7 +30,7 @@ def document_batches(documents, batch_size=64):
     batches = []
     current_batch = {}
     for doc_id, text in documents.items():
-        # Keep the file name with its text, just like in main.py.
+        # Keep the file name with its text, just like in hw02_index.py.
         current_batch[doc_id] = text
         if len(current_batch) == batch_size:
             batches.append(current_batch)
