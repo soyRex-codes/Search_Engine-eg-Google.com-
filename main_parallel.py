@@ -13,6 +13,7 @@ from hw02_index import (
     load_index,
     load_stop_words,
     my_info_and_course,
+    normalize_inverted_index,
     preprocess_documents,
     read_documents,
     save_index,
@@ -96,7 +97,9 @@ def build_index_parallel(documents, stop_words, workers=4, batch_size=64):
             # If two groups count "book" 3 and 5 times, the total becomes 8.
             term_frequency.update(partial_frequency)
 
-    return my_inverted_index, term_frequency
+    # Each batch is sorted internally, but concatenating batches does not sort
+    # the complete postings. Boolean AND/OR merging requires a global order.
+    return normalize_inverted_index(my_inverted_index), term_frequency
 
 
 # function4 - shows the most frequent terms after combining all groups

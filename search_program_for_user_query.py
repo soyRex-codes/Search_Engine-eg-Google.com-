@@ -2,7 +2,10 @@ import json
 import sys
 from contextlib import redirect_stdout
 from pathlib import Path
-from hw02_index import preprocess_text, load_stop_words, document_sort_key, my_info_and_course # reusable functions from hw02_index
+from hw02_index import (
+    preprocess_text, load_stop_words, document_sort_key, my_info_and_course,
+    normalize_inverted_index,
+) # reusable functions from hw02_index
 from itertools import product # product() gives us every possible combination of choices.
 
 # Rajkumar Kushwaha, CSC734 Information Retrieval, Homework 02
@@ -33,11 +36,11 @@ display matching documents
 """ Loads an inverted index that was previously saved as JSON.
 Input: file_name - path to the saved index file.
 Output: inverted_index - previously saved inverted index.
-    The postings lists were sorted when the index was built in HW1."""
+    The postings lists are validated, deduplicated, and sorted when loaded."""
 def load_inverted_index(file_name): ## (file_name= "inverted_index.json")
-    """Read the saved JSON index and return its term-to-postings dictionary."""
+    """Read a saved JSON index and return valid, globally sorted postings."""
     with open(file_name, "r", encoding="utf-8") as file:
-        inverted_index = json.load(file)
+        inverted_index = normalize_inverted_index(json.load(file))
     print(f"Index loaded from {file_name}")
     return inverted_index
 

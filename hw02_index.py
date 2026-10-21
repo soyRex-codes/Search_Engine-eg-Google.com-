@@ -4,6 +4,7 @@ import unicodedata
 from pathlib import Path
 from nltk.stem import PorterStemmer
 import json
+import re
 from collections import Counter
 from time import perf_counter
 
@@ -133,9 +134,41 @@ sorted will look like this:
 ]
 """
 def document_sort_key(doc_id):
-    """Return the numeric suffix of a document ID such as file_339.txt."""
-#file_339.txt -> 339
-    return int(Path(doc_id).stem.split("_")[-1])
+    """Return a total order for file_N.txt and replicated file_N_cM.txt IDs.
+
+    Sort by document number, then copy number (the original precedes copies).
+    The full filename breaks ties between spellings with leading zeros.
+    All index builders and Boolean merge operations must use this same order.
+    """
+    match = None
+    if isinstance(doc_id, str):
+        match = re.fullmatch(r"file_([0-9]+)(?:_c([0-9]+))?\.txt", doc_id)
+    if match is None:
+        raise ValueError(
+            f"Unsupported document ID {doc_id!r}; expected file_N.txt or file_N_cM.txt "
+            "with nonnegative integer N and M."
+        )
+    document_number, copy_number = match.groups()
+    return int(document_number), int(copy_number) if copy_number is not None else -1, doc_id
+
+
+def normalize_inverted_index(inverted_index):
+    """Validate an index and return sorted, duplicate-free postings lists.
+
+    Historical parallel indexes can contain unsorted batch concatenations.
+    Normalize them in memory when loading; leave the source JSON unchanged.
+    """
+    if not isinstance(inverted_index, dict):
+        raise ValueError("An inverted index must be an object mapping terms to document-ID lists.")
+    normalized = {}
+    for term, postings in inverted_index.items():
+        if not isinstance(term, str) or not isinstance(postings, list):
+            raise ValueError("Index terms must be strings and postings must be document-ID lists.")
+        # Validate before using set(), so malformed/unhashable IDs get a clear error.
+        for doc_id in postings:
+            document_sort_key(doc_id)
+        normalized[term] = sorted(set(postings), key=document_sort_key)
+    return normalized
 
 # fun 5
 """Builds the inverted index from the processed document collection.
@@ -198,7 +231,7 @@ def save_index(my_inverted_index, file_name):
 def load_index(file_name):
     """Read file_name and return its saved inverted-index dictionary."""
     with open(file_name, "r", encoding="utf-8") as file:
-        loaded_index = json.load(file)
+        loaded_index = normalize_inverted_index(json.load(file))
     print(f"Index loaded from {file_name}")
     return loaded_index
 

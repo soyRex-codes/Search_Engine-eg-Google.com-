@@ -117,6 +117,13 @@ For Boolean search, provide `inverted_index.json`, `stopwords.txt`, and
 `sample_queries.txt` at the prompts. Results are written to `output.txt`.
 The [HW02 instructions](docs/HW02_README.md) retain the earlier workflow details.
 
+Both original IDs (`file_N.txt`) and synthetic replica IDs (`file_N_cM.txt`) use
+the same ordering: document number, copy number (original first), then filename.
+Parallel postings are globally sorted after batch merging. Both index loaders
+validate, deduplicate, and sort postings in memory, so historical saved parallel
+indexes can be searched without rewriting their JSON files. Unsupported IDs and
+malformed index structures produce a `ValueError` describing the problem.
+
 ## Repository files
 
 | Path | Purpose |
