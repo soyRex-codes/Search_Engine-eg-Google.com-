@@ -1,0 +1,15 @@
+# Python environments and generated caches
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+
+# Local editor and operating-system files
+.idea/
+.vscode/
+.DS_Store
+
+# Local output and submission archives
+output.txt
+*.zip

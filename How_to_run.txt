@@ -1,13 +1,173 @@
-# Rajkumar Kushwaha, CSC734 Information Retrieval, Homework 02
+Rajkumar Kushwaha | CSC734 Information Retrieval | Homework 03
 
-to run the program, run these file in the terminal: main.py is for the first part of the hw, its the modified hw01 code, to support hw02.
-and for second part of the Hw: run: search_program_for_user_query.py
+PURPOSE
+Find the K most similar distinct document pairs across the entire collection,
+separately using TF, TF-IDF, and sublinear TF-IDF with cosine similarity.
 
-when these file will run: it will ask for inputs of the file paths, enter those files paths as asked:
-paths of files such as:
-inverted index file path
-stop words file path
-query file path
+REQUIREMENTS
+- Python 3.10 or later. Tested with Python 3.14.4 and NLTK 3.10.3.
+- Install dependencies and tokenizer data once before running:
 
+    python -m pip install -r requirements.txt
+    python -m nltk.downloader punkt punkt_tab
 
-the output will be saved in output.txt for your final review.
+Use python3 instead of python if that is how Python is named on your machine.
+Use the same Python interpreter for installing dependencies and running code.
+
+Optional isolated environment:
+
+    python -m venv .venv
+
+Activate it on macOS/Linux:
+
+    source .venv/bin/activate
+
+Or activate it in Windows PowerShell:
+
+    .venv\Scripts\Activate.ps1
+
+Then run the installation commands above. The virtual environment is not part
+of the submission ZIP. No scikit-learn, NumPy, or SciPy is required.
+
+INTERACTIVE RUN
+1. Extract HW03_Kushwaha.zip.
+2. Open a terminal in the extracted HW03_Kushwaha folder.
+3. Run:
+
+    python main.py
+
+4. Press Enter at the first two prompts to use the included documents folder
+   and stopwords.txt. Alternatively, enter your own paths without surrounding
+   quotation marks. Paths containing spaces are supported.
+5. Enter K, for example 10. The program asks again if K is invalid.
+
+The included 1,459-document collection has 1,063,611 distinct document pairs,
+so K must be between 1 and 1,063,611. Only direct-child files ending in .txt
+are read. A collection needs at least two documents.
+
+COMMAND-LINE RUN
+The following skips interactive typing and is convenient for reproducibility:
+
+    python main.py --documents documents --stopwords stopwords.txt --k 10
+
+For paths containing spaces, use shell quotation marks in command-line flags:
+
+    python main.py --documents "/path with spaces/documents" --stopwords "/path with spaces/stopwords.txt" --k 10
+
+Relative command-line paths are interpreted from the terminal's working
+directory. Interactive defaults are located beside main.py, even when the
+script is launched from another working directory.
+
+SAVE OUTPUT
+
+    python main.py --documents documents --stopwords stopwords.txt --k 10 > my_output.txt
+
+The included sample_output.txt is an actual full-collection run with K=10.
+The program prints results to the terminal and does not modify input files.
+
+PREPROCESSING
+The program preserves the HW02 pipeline:
+1. Tokenize each document with nltk.word_tokenize.
+2. Lowercase each token.
+3. Delete ASCII punctuation from each token; discard empty tokens.
+4. Remove supplied stop words before stemming.
+5. Apply Porter stemming.
+6. Count every remaining occurrence within each document.
+
+Stop-word lines are stripped and lowercased; blank lines are ignored.
+Input documents are read as UTF-8. The supplied corpus and stopwords.txt are
+unchanged input data; identifying comments are placed in authored files,
+not inserted into the corpus where they would alter the results.
+
+FORMULAS
+N = number of input documents, including documents with no remaining tokens.
+tf(t,d) = occurrence count of processed term t in document d.
+df(t) = number of documents containing t, counting each document once.
+idf(t) = log10(N / df(t)). No smoothing or extra constants are used.
+
+1. TF:       weight(t,d) = tf(t,d)
+2. TF-IDF:   weight(t,d) = tf(t,d) * idf(t)
+3. WF-IDF:   weight(t,d) = (1 + log10(tf(t,d))) * idf(t), if tf(t,d)>0
+                          0 otherwise
+
+Each document has a separate Euclidean length for each method:
+    length(d) = sqrt(sum(weight(t,d)^2 over all terms t))
+
+Divide each weight by that method's document length, then compute cosine as
+the dot product of the normalized document vectors. Absent terms contribute
+zero. A zero-length vector has all normalized weights set to zero, and its
+similarity to every document is reported as zero. This is an explicit program
+convention because mathematical cosine is undefined for zero vectors.
+
+RESULTS AND TIES
+- K refers to pairs across the collection, not K neighbors per document.
+- Each pair contains two different files. Identical contents in different
+  files are allowed and can produce similarity 1.
+- Pairs (A,B) and (B,A) are the same pair and appear only once per method.
+- Results are ranked by full-precision score descending.
+- Exactly equal computed scores are ordered by the naturally sorted document
+  indices (file_2.txt before file_10.txt), first left, then right.
+- Printed scores use eight decimal places. Scores that look equal after
+  formatting can differ slightly in full precision due to floating-point
+  arithmetic, including mathematically identical scores near 1.
+- Only floating-point scores outside [0,1] are clipped to that interval.
+- Zero-score pairs are included if necessary to supply K pairs.
+- Unique words and the top 10 use processed/stemmed terms. Top 10 frequency
+  means total occurrences across the collection, not document frequency.
+  Equal term frequencies are ordered alphabetically.
+
+PERFORMANCE
+All weighting, normalization, cosine, and ranking logic is implemented in
+main.py. NLTK is used only for tokenization and Porter stemming.
+
+Optimizations:
+- Read and tokenize each document once.
+- Reuse one PorterStemmer; cache stems within a run (up to 100,000 tokens).
+- Store sparse dictionaries containing only observed terms.
+- Calculate IDF once and normalized weights once.
+- Visit each i<j pair once. Scan the smaller document dictionary and calculate
+  the three cosine numerators together from the same shared terms.
+- Retain only K pairs per method using bounded min-heaps, then sort those K.
+
+No saved index, saved similarity results, multiprocessing, vectorizer, or
+built-in cosine function is used. Each fresh run processes the corpus anew.
+
+Let N be documents, S be nonzero term-document counts, V be vocabulary size,
+L be the largest distinct-term count in a document, and P=N*(N-1)/2.
+After preprocessing, weighting takes O(S+V). Pair scoring takes
+O(sum(min(L_i,L_j) over i<j)), bounded by O(P*L). Heap work is O(P*log(K+1))
+in the worst case, and final sorting is O(K*log(K+1)) per method.
+Memory is O(S+V+N+K), plus the bounded stem cache and current document tokens.
+
+The displayed total starts before NLTK imports and includes reading,
+preprocessing, weighting, comparisons, ranking, and flushed result output.
+Time waiting at interactive prompts is subtracted. Interpreter startup,
+dependency installation, and tokenizer downloads are outside this timer.
+BENCHMARK.txt also reports externally measured fresh-process wall time,
+including interpreter startup. Large K increases ranking storage and output
+time; the bonus target cannot be guaranteed for arbitrary K or hardware.
+
+TESTS
+From this folder:
+
+    python -m unittest -v test_hw03
+
+Tests cover hand-calculated scores, independently computed dense cosine
+scores for randomized collections, heap ranking against exhaustive sorting,
+zero vectors, common-term IDF=0, repeated terms, tied scores, disjoint and
+identical vectors, natural file ordering, preprocessing, invalid K, and CLI
+and interactive behavior. Tests are not run automatically during normal use.
+
+FILES
+main.py             Complete implementation and interactive/CLI entry point.
+test_hw03.py        Independent correctness and input-handling tests.
+requirements.txt    Tested NLTK dependency.
+How_to_run.txt      These installation, usage, and design instructions.
+BENCHMARK.txt       Full-collection correctness and timing evidence.
+sample_output.txt   Actual K=10 output on the supplied collection.
+documents/          Original 1,459 input .txt files from HW02.
+stopwords.txt       Original supplied stop-word list.
+
+SUBMISSION
+Submit HW03_Kushwaha.zip through the actual course assignment page.
+The assignment header says Brightspace; its last line says Blackboard.

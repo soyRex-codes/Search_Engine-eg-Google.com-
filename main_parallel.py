@@ -6,13 +6,14 @@ from concurrent.futures import ProcessPoolExecutor
 from multiprocessing import get_context
 from time import perf_counter
 
-# I reuse the functions from main.py so both versions process text the same way.
-from main import (
+# I reuse the functions from hw02_index.py so both versions process text the same way.
+from hw02_index import (
     build_inverted_index,
     display_index_size,
     load_index,
     load_stop_words,
     my_info_and_course,
+    normalize_inverted_index,
     preprocess_documents,
     read_documents,
     save_index,
@@ -30,7 +31,7 @@ def document_batches(documents, batch_size=64):
     batches = []
     current_batch = {}
     for doc_id, text in documents.items():
-        # Keep the file name with its text, just like in main.py.
+        # Keep the file name with its text, just like in hw02_index.py.
         current_batch[doc_id] = text
         if len(current_batch) == batch_size:
             batches.append(current_batch)
@@ -96,7 +97,9 @@ def build_index_parallel(documents, stop_words, workers=4, batch_size=64):
             # If two groups count "book" 3 and 5 times, the total becomes 8.
             term_frequency.update(partial_frequency)
 
-    return my_inverted_index, term_frequency
+    # Each batch is sorted internally, but concatenating batches does not sort
+    # the complete postings. Boolean AND/OR merging requires a global order.
+    return normalize_inverted_index(my_inverted_index), term_frequency
 
 
 # function4 - shows the most frequent terms after combining all groups
